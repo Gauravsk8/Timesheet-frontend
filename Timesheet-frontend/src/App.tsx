@@ -1,13 +1,15 @@
+// src/App.tsx
+import React from "react";
 import { useKeycloak } from "@react-keycloak/web";
+import RegisterUserForm from "./components/RegisterUserForm";
 
 const App = () => {
   const { keycloak, initialized } = useKeycloak();
 
   if (!initialized) return <div>Loading...</div>;
 
-  // Extract roles from token (from realm_access.roles)
   const roles = keycloak.tokenParsed?.realm_access?.roles || [];
-  const userRole = roles.length > 0 ? roles.join(", ") : "No Role Assigned";
+  const isAdmin = roles.includes("Admin");
 
   return (
     <div>
@@ -19,20 +21,23 @@ const App = () => {
 
       {keycloak.authenticated ? (
         <>
-          <p>Role: {userRole}</p>
+          <p>Role: {roles.join(", ")}</p>
           <button onClick={() => keycloak.logout()}>Logout</button>
+
+          {isAdmin && (
+            <div style={{ marginTop: "2rem" }}>
+              <RegisterUserForm />
+            </div>
+          )}
         </>
       ) : (
         <>
-          {/* Default Keycloak Login */}
           <button onClick={() => keycloak.login()}>Login</button>
-
-          {/* Google Login */}
           <button
             onClick={() =>
               keycloak.login({
                 idpHint: "google",
-                prompt: "select_account" as any, // Allows account selection
+                prompt: "select_account" as any,
               })
             }
           >
